@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Camera body -->
+  <rect x="24" y="32" width="80" height="64" rx="8" fill="#4285f4"/>
+  
+  <!-- Camera top -->
+  <rect x="32" y="24" width="64" height="16" rx="4" fill="#4285f4"/>
+  
+  <!-- Lens -->
+  <circle cx="64" cy="64" r="24" fill="#ffffff"/>
+  <circle cx="64" cy="64" r="16" fill="#4285f4"/>
+  
+  <!-- No data symbol (strikethrough) -->
+  <line x1="32" y1="96" x2="96" y2="96" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Flash -->
+  <path d="M88 40 L96 32 L96 48 Z" fill="#ffffff"/>
+</svg> 

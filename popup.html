@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EXIF Intercept</title>
+  <script src="heic2any.min.js"></script>
+  <style>
+    body {
+      width: 350px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    
+    h2 {
+      margin-top: 0;
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+      border-color: #4285f4;
+      background-color: #f8f9fa;
+    }
+    
+    .upload-area.dragover {
+      border-color: #4285f4;
+      background-color: #e8f0fe;
+    }
+    
+    .upload-icon {
+      font-size: 24px;
+      color: #4285f4;
+      margin-bottom: 10px;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .options-section {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+    
+    .option-group {
+      margin-bottom: 15px;
+    }
+    
+    .option-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    
+    .option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .option-label {
+      flex: 1;
+    }
+    
+    .option-control {
+      flex: 1;
+      text-align: right;
+    }
+    
+    .slider {
+      width: 100%;
+    }
+    
+    .button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    
+    .button:hover {
+      background-color: #3367d6;
+    }
+    
+    .button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #e8f5e9;
+      display: none;
+    }
+    
+    .status.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status.error {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+    
+    .file-list {
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 5px;
+    }
+    
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .file-item:last-child {
+      border-bottom: none;
+    }
+    
+    .file-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .file-action {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4285f4;
+      font-size: 14px;
+    }
+    
+    .file-action:hover {
+      text-decoration: underline;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 15px;
+    }
+    
+    .tab {
+      padding: 8px 15px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+      border-bottom-color: #4285f4;
+      color: #4285f4;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .progress-container {
+      margin-top: 10px;
+      width: 100%;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background-color: #4285f4;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>EXIF Intercept</h2>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="upload">Upload</div>
+    <div class="tab" data-tab="options">Options</div>
+    <div class="tab" data-tab="history">History</div>
+  </div>
+  
+  <div class="tab-content active" id="upload-tab">
+    <div class="upload-area" id="upload-area">
+      <div class="upload-icon">📸</div>
+      <div>Drag & drop images here or click to select</div>
+      <input type="file" id="file-input" class="file-input" multiple accept="image/*,.heic,.heif">
+    </div>
+    
+    <div class="status" id="status"></div>
+    <div class="progress-container" id="progress-container" style="display: none;">
+      <div class="progress-bar" id="progress-bar"></div>
+      <div class="progress-text" id="progress-text">Processing: 0%</div>
+    </div>
+    
+    <button id="process-btn" class="button" disabled>Process Images</button>
+  </div>
+  
+  <div class="tab-content" id="options-tab">
+    <div class="options-section">
+      <div class="option-group">
+        <div class="option-title">Output Settings</div>
+        
+        <div class="option-row">
+          <div class="option-label">Output Format</div>
+          <div class="option-control">
+            <select id="format-select">
+              <option value="jpeg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="option-row">
+          <div class="option-label">Quality</div>
+          <div class="option-control">
+            <input type="range" id="quality-slider" class="slider" min="1" max="100" value="90">
+            <span id="quality-value">90%</span>
+          </div>
+        </div>
+        
+        <div class="option-row">
+          <div class="option-label">Resize Images</div>
+          <div class="option-control">
+            <input type="checkbox" id="resize-checkbox">
+          </div>
+        </div>
+        
+        <div class="option-row" id="resize-options" style="display: none;">
+          <div class="option-label">Max Width (px)</div>
+          <div class="option-control">
+            <input type="number" id="max-width" value="1920" min="100" max="10000">
+          </div>
+        </div>
+        
+        <div class="option-row" id="resize-options-height" style="display: none;">
+          <div class="option-label">Max Height (px)</div>
+          <div class="option-control">
+            <input type="number" id="max-height" value="1080" min="100" max="10000">
+          </div>
+        </div>
+        
+        <div class="option-row">
+          <div class="option-label">Maintain Aspect Ratio</div>
+          <div class="option-control">
+            <input type="checkbox" id="aspect-ratio-checkbox" checked>
+          </div>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <div class="option-title">File Settings</div>
+        
+        <div class="option-row">
+          <div class="option-label">Filename Prefix</div>
+          <div class="option-control">
+            <input type="text" id="filename-prefix" value="cleaned_">
+          </div>
+        </div>
+        
+        <div class="option-row">
+          <div class="option-label">Add Date to Filename</div>
+          <div class="option-control">
+            <input type="checkbox" id="add-date-checkbox">
+          </div>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <div class="option-title">EXIF Settings</div>
+        
+        <div class="option-row">
+          <div class="option-label">Remove All EXIF Data</div>
+          <div class="option-control">
+            <input type="checkbox" id="remove-all-exif" checked>
+          </div>
+        </div>
+        
+        <div class="option-row">
+          <div class="option-label">Keep Copyright Info</div>
+          <div class="option-control">
+            <input type="checkbox" id="keep-copyright">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button id="save-options-btn" class="button">Save Options</button>
+  </div>
+  
+  <div class="tab-content" id="history-tab">
+    <div class="file-list" id="file-list">
+      <!-- File history will be populated here -->
+    </div>
+    <button id="clear-history-btn" class="button">Clear History</button>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
